@@ -2,24 +2,30 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Look Around !!!!!!</title>
+    <title>Simple Chat Room With Playable Character</title>
     <style>
       body {
         margin: 0;
       }
       .canva {
         background-color: rgb(77, 82, 82);
+        padding-left: 0;
+        padding-right: 0;
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+        width: 1200px;
       }
     </style>
   </head>
   <body>
     <canvas class="canva"></canvas>
-    <h1>TESTING</h1>
+    <h1>Type message here to say something</h1>
     <form id="message-container">
       <input type="text" id="message-input">
       <button type="submit" id="send-button">send</button>
     </form>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="static/index.js"></script>
+    <script src="static/index.js" type="module"></script>
   </body>
 </html>

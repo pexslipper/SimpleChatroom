@@ -1,6 +1,12 @@
-
 const canvas = document.querySelector('canvas')
 const c = canvas.getContext('2d')
+
+// Create a new Image object
+const image = new Image();
+
+// Set the source of the image
+image.src = 'static/platform.png';
+// When the image is loaded, draw it onto the canvas
 
 //handle connect to server
 const socket = io();
@@ -11,7 +17,13 @@ socket.on('updatePlayers',(playersinserver) => {
         const playerinserver = playersinserver[id]
 
         if (!players[id]){
-            players[id] = new Player (playerinserver.x,playerinserver.y,playerinserver.name,playerinserver.vx,playerinserver.vy)
+            players[id] = new Player (playerinserver.x,playerinserver.y,playerinserver.name,playerinserver.vx,playerinserver.vy,image)
+        }   else{
+            players[id].position.y = playersinserver[id].y
+            players[id].position.x = playersinserver[id].x
+            players[id].velocity.y = playersinserver[id].vy
+            players[id].velocity.x = playersinserver[id].vx
+
         }
     }
 
@@ -25,49 +37,65 @@ socket.on('updatePlayers',(playersinserver) => {
 
 })
 
-canvas.width = innerWidth
+socket.on('platform',(platform) => {
+    //add new player
+    platform.forEach(data => {
+        platforms.push(new Platform(data.X,data.Y,image))
+    })
+})
+
+
+canvas.width = 1250
 canvas.height = 500
 
 const gravity = 0.5
 class Player {
-    constructor(x, y , name,vx,vy) {
+    constructor(x, y , name,vx,vy,image) {
         this.position = { x, y }
         this.name = name
 
         this.width = 30
         this.height = 60
-
+        this.messagestatus = false
+        this.message = ''
         this.velocity = 
         {
             x:vx,
             y:vy
         }
+        this.image = image
     }
 
     draw(){
-        c.fillStyle = 'black'
+        // c.fillStyle = "#09f";        
+        // set composite mode        
+        // draw image      
+        // c.drawImage(this.image, this.position.x,this.position.y-12,45,90); // Draw the image at coordinates (0, 0)
+        
+
+        c.fillStyle = 'black'            
         c.fillRect(this.position.x,this.position.y,this.width,this.height) 
         c.fillStyle = 'white'
         //name here
         c.fillText(this.name, this.position.x, this.position.y - 8)
 
-        c.fillText("X:"+this.position.x, this.position.x+35, this.position.y)
-        c.fillText("Y:"+`${this.position.y+this.height}`, this.position.x+35, this.position.y+10);
-        c.fillText("VY:"+this.velocity.y, this.position.x+35, this.position.y+20);
+        // c.fillText("X:"+this.position.x, this.position.x+35, this.position.y)
+        // c.fillText("Y:"+`${this.position.y+this.height}`, this.position.x+35, this.position.y+10);
+        // c.fillText("VY:"+this.velocity.y, this.position.x+35, this.position.y+20);
 
     }  
 
     update(){
         this.draw()
-        this.position.y += this.velocity.y
-        this.position.x += this.velocity.x
+        // this.position.y += this.velocity.y
+        // this.position.x += this.velocity.x
 
-        if(this.position.y + this.height + this.velocity.y <= canvas.height )
-        {
-            this.velocity.y += gravity
-        } else {
-            this.velocity.y = 0
-        }
+        // if(this.position.y + this.height + this.velocity.y <= canvas.height )
+        // {
+        //     this.velocity.y += gravity
+        // } else {
+        //     this.velocity.y = 0
+        // }
     }
 
     drawSpeechRectangle(text) {
@@ -92,30 +120,25 @@ class Player {
     
 }
 class Platform{
-    constructor(x,y){
+    constructor(x,y,img){
         this.position = { x, y }
 
         this.width = 150    
-        this.height = 15
+        this.height = 30
+        this.img = img
     }
 
     draw(){
-        c.fillStyle = 'green'
-        c.fillRect(this.position.x,this.position.y,this.width,this.height)  
-        c.fillText("X:"+this.position.x, this.position.x, this.position.y);
-        c.fillText("Y:"+this.position.y, this.position.x+150, this.position.y);
+        c.drawImage(this.img, this.position.x-15,this.position.y-58,180,200); // Draw the image at coordinates (0, 0)
+        // c.fillStyle = 'green'
+        // c.fillRect(this.position.x,this.position.y,this.width,this.height)  
+        // c.fillText("X:"+this.position.x, this.position.x, this.position.y);
+        // c.fillText("Y:"+this.position.y, this.position.x+150, this.position.y);
     }
 
 }
 
 const platforms = [
-    new Platform(canvas.width-1200,200),
-    new Platform(canvas.width-1000,150),
-    new Platform(canvas.width-200,300),
-    new Platform(canvas.width-800,175),
-    new Platform(canvas.width-520,350),
-    new Platform(canvas.width-900,380),
-    new Platform(canvas.width-150,400),
 ]
 
 
@@ -151,42 +174,46 @@ function animate() {
         platform.draw()
     })
     //handle moving and scroll background
-    if(players[socket.id]){
-    if (moving.left.press && 
-        players[socket.id].position.x > 0 && not_typing.status)
-        {
-        players[socket.id].velocity.x = -5
-    } else if (moving.right.press &&
-        players[socket.id].position.x + players[socket.id].width < 1690 && not_typing.status) {
-        players[socket.id].velocity.x = 5
-    } else {
-        players[socket.id].velocity.x = 0
-    }
+    // if(players[socket.id]){
+    // if (moving.left.press && 
+    //     players[socket.id].position.x > 0 && not_typing.status)
+    //     {
+    //     players[socket.id].velocity.x = -5
+    // } else if (moving.right.press &&
+    //     players[socket.id].position.x + players[socket.id].width < 1690 && not_typing.status) {
+    //     players[socket.id].velocity.x = 5
+    // } else {
+    //     players[socket.id].velocity.x = 0
+    // }
 
     //handle message
-    if(message.show){
-        players[socket.id].drawSpeechRectangle(messageShow.message)
-    }
-    
-    // handle platform
-    platforms.forEach(platform => {
-    if(
-        players[socket.id].position.y + players[socket.id].height <= platform.position.y && 
-        players[socket.id].position.y + players[socket.id].height + players[socket.id].velocity.y >= platform.position.y &&
-        players[socket.id].position.x + players[socket.id].width >= platform.position.x && 
-        players[socket.id].position.x <= platform.position.x + platform.width
-        ){
-            players[socket.id].velocity.y = 0 
+    for(const id in players){
+        const newplayer = players[id]
+        if(newplayer.messageShow){
+            newplayer.drawSpeechRectangle(newplayer.message)
         }
-})
-
-    // handle reset player position
-    if (players[socket.id].position.y + players[socket.id].height >= 520)
-    {
-        players[socket.id].position.x =100
-        players[socket.id].position.y =100
     }
-}
+
+    
+//     // handle platform
+//     platforms.forEach(platform => {
+//     if(
+//         players[socket.id].position.y + players[socket.id].height <= platform.position.y && 
+//         players[socket.id].position.y + players[socket.id].height + players[socket.id].velocity.y >= platform.position.y &&
+//         players[socket.id].position.x + players[socket.id].width >= platform.position.x && 
+//         players[socket.id].position.x <= platform.position.x + platform.width
+//         ){
+//             players[socket.id].velocity.y = 0 
+//         }
+// })
+
+//     // handle reset player position
+//     if (players[socket.id].position.y + players[socket.id].height >= 520)
+//     {
+//         players[socket.id].position.x =100
+//         players[socket.id].position.y =100
+//     }
+// }
 
 }
 
@@ -196,25 +223,30 @@ addEventListener('keydown', ({keyCode}) => {
     switch(keyCode){
         // W up
         case 87:
-            // players[socket.id].velocity.y -= 10
             if(not_typing.status){
-            players[socket.id].velocity.y -= 10
+            socket.emit('updatePlayersmovement','pressup')
             }
             break
         // S down
         case 83:
             if(not_typing.status){
-            players[socket.id].velocity.y =+ 1
+            socket.emit('updatePlayersmovement','down')
             }
             break
 
         // A left
         case 65:
+            if(not_typing.status){
+            socket.emit('updatePlayersmovement','left')
             moving.left.press = true
+            }
             break
         // D right
         case 68:
+            if(not_typing.status){
+            socket.emit('updatePlayersmovement','right')
             moving.right.press = true
+            }
             break
 
     }
@@ -224,19 +256,19 @@ addEventListener('keyup', ({keyCode}) => {
     switch(keyCode){
         // W up
         case 87:
+            socket.emit('updatePlayersmovement','releaseup')
             break
         // S down
         case 83:
             break
+
         // A left
         case 65:
-            // players[socket.id].velocity.x = 0
-            moving.left.press = false
+            socket.emit('updatePlayersmovement','releaseleft')
             break
         // D right
         case 68:
-            // players[socket.id].velocity.x = 0
-            moving.right.press = false
+            socket.emit('updatePlayersmovement','releaseright')
             break
     }
 })
@@ -248,18 +280,19 @@ addEventListener('keyup', ({keyCode}) => {
 
 const messageForm = document.getElementById('message-container')
 const messageinput = document.getElementById('message-input')
-const messageShow = {
-    message : ''
-}
-//send message
+
+
+socket.on('message', (msg) => {
+    players[msg.id].messageShow = true
+    players[msg.id].message = msg.message
+    setTimeout(function() {
+        players[msg.id].messageShow = false
+    }, 8000)
+  });
 
 messageForm.addEventListener('submit',e => {
     e.preventDefault()
-    messageShow.message = messageinput.value
-    message.show = true
-    setTimeout(function() {
-        message.show = false
-    }, 2000)
+    socket.emit('message', {message:messageinput.value , id:socket.id});
     messageinput.value = ''
 })
 
@@ -268,12 +301,10 @@ const not_typing = {
     status : true
 }
 messageinput.addEventListener("focus", () => {
-    // This code will run when the cursor enters the text input
     not_typing.status = false
 });
 
 messageinput.addEventListener("blur", () => {
-    // This code will run when the cursor enters the text input
     not_typing.status = true
 });
 
